@@ -37,4 +37,14 @@ describe('FrameClock', () => {
     expect(clock.next()).toBe(1_760_000_000_000_123);
     expect(Number.isInteger(clock.lastTimestampUs)).toBe(true);
   });
+
+  it('anchors camera media timestamps so processing jitter does not change frame cadence', () => {
+    let now = 100;
+    const clock = new FrameClock(EPOCH, () => now);
+    const first = clock.next(5_000_000);
+    now = 900; // Pixel conversion was slow, but the next camera frame is 33.333 ms later.
+    const second = clock.next(5_033_333);
+    expect(first).toBe(EPOCH * 1_000);
+    expect(second - first).toBe(33_333);
+  });
 });

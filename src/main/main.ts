@@ -68,7 +68,7 @@ async function main(): Promise<void> {
   const service = new SessionService({
     emit: send,
     credentials,
-    verboseValidationLogs: !app.isPackaged,
+    verboseValidationLogs: !app.isPackaged && process.env.LUMAPAUSE_SDK_DEBUG === '1',
   });
 
   const openWindow = (): void => {

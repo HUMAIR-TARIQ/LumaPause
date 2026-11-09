@@ -95,12 +95,16 @@ function redact(value) {
 }
 
 function isPlaceholder(value) {
-  const cleaned = value.trim().replace(/^["']|["']$/g, '');
+  const cleaned = value
+    .trim()
+    .replace(/^["']|["']$/g, '')
+    .replace(/[,;]+$/, '');
   if (!cleaned) return true;
   if (PLACEHOLDER.test(cleaned)) return true;
   if (KNOWN_FAKE.has(cleaned)) return true;
   if (cleaned.startsWith('$') || cleaned.includes('process.env')) return true;
   if (/^\$\{?[A-Z0-9_]+\}?$/.test(cleaned)) return true;
+  if (/^(?:key|apiKey|api_key|secret|token|credential)$/.test(cleaned)) return true;
   return false;
 }
 

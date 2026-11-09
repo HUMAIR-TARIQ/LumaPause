@@ -215,7 +215,7 @@ environment, so a shipped binary never contains one.
 | `npm run typecheck`    | Strict TypeScript check                                           |
 | `npm run lint`         | ESLint with zero warnings allowed                                 |
 | `npm run format:check` | Verify Prettier formatting                                        |
-| `npm test`             | 112 Vitest unit and integration tests                             |
+| `npm test`             | 113 Vitest unit and integration tests                             |
 | `npm run test:e2e`     | Build, then run 6 Playwright Electron journeys                    |
 | `npm run package:win`  | Build NSIS installer and portable executable                      |
 | `npm run scan:secrets` | Scan tracked files, build output, and Git history for credentials |
@@ -236,7 +236,7 @@ The automated suite covers:
 - Electron journeys: full demo flow, missing key, consent, permission denied, partial signal,
   keyboard operation, reduced motion, sandbox and CSP checks.
 
-At the time of this build: **112/112 unit and integration tests pass**, and **6/6 Playwright
+At the time of this build: **113/113 unit and integration tests pass**, and **6/6 Playwright
 journeys pass**. These exercise the simulator and the real application shell; they do not prove
 that live SmartSpectra measurement works. Live hardware status is recorded in
 [`docs/HARDWARE_TEST_REPORT.md`](docs/HARDWARE_TEST_REPORT.md).
@@ -260,6 +260,13 @@ The packaged app ships the SmartSpectra native runtime under `resources/smartspe
 the SDK at it through `SMARTSPECTRA_CAPI_PATH`, keeping the native library out of the asar archive.
 Icons are generated from `vibe_images/` by `scripts/make-icons.mjs` into `build/icon.png` and a
 multi-frame `build/icon.ico`.
+
+## Companion website
+
+[`website/`](website/README.md) contains a static companion site with a clearly labeled browser
+simulator. It never requests a camera and makes no measurements. `vercel.json` publishes
+`website/dist` to Vercel; the Electron application itself cannot run there. `website/dist/index.html`
+is committed deliberately and is exempted from the root `dist/` ignore rule.
 
 ## Documentation
 

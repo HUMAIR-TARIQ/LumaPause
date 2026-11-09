@@ -23,7 +23,9 @@ export function WelcomeScreen({
         <p className="lede">{APP_TAGLINE}</p>
         <div className="welcome__status">
           {env ? (
-            env.keyPresent && env.platformSupported && !env.nativeRuntimeError ? (
+            env.platform === 'web' ? (
+              <StatusChip tone="good">Online experience ready</StatusChip>
+            ) : env.keyPresent && env.platformSupported && !env.nativeRuntimeError ? (
               <StatusChip tone="good">Live measurement ready on this device</StatusChip>
             ) : (
               <StatusChip tone="learning">Setup guidance available</StatusChip>

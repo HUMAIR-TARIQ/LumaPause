@@ -1,10 +1,11 @@
 # Live hardware test report
 
-**Status: PARTIAL SDK SMOKE PASS; FULL APP MATRIX NOT EXECUTED.** On 2026-11-09, the
-key-safe `npm run smoke:smartspectra` test discovered the Windows camera, authenticated,
-reached SmartSpectra `Running`, emitted validation events and metrics, and shut down. This proves
-the development host's key, native runtime, camera input, and requested metric entitlements work;
-it does not yet prove LumaPause's renderer frame bridge or packaged application end to end.
+**Status: DEVELOPMENT LIVE STARTUP PASS; FULL APP MATRIX NOT EXECUTED.** On 2026-11-09, the
+key-safe `npm run smoke:smartspectra` test discovered the Windows camera, authenticated, reached
+SmartSpectra `Running`, and emitted metrics. After fixing frame-rate negotiation, media-clock
+timestamps, and renderer frame throughput, `npm run diagnose:live` also sustained LumaPause's
+real renderer-to-main camera path for 45 seconds without SDK error 8. The full room journey,
+camera-release matrix, five-minute resource test, and packaged build still require manual testing.
 
 This report is intentionally blunt. Automated simulator and Electron tests are listed separately
 because they cannot prove that camera capture, SDK authentication, native loading, and metric
@@ -33,13 +34,13 @@ build resolves the SDK and its DLLs. They do not show that a session runs.
 |---|---|---|
 | Strict TypeScript check | Passed | `npm run typecheck` |
 | ESLint (zero warnings) | Passed | `npm run lint` |
-| Unit + integration tests | Passed | 112/112 across 11 files |
+| Unit + integration tests | Passed | 113/113 across 11 files |
 | Playwright Electron journeys | Passed | 6/6; simulator, setup, permission denied, partial signal, keyboard, sandbox/CSP |
 | Production build | Passed | Main, preload, renderer |
 | Credential scan | Passed | Project files, build output, Git history |
 | Windows packaging | Passed (build only) | `release-final/LumaPause-1.0.0-x64-setup.exe` and `-portable.exe`, SHA-256 recorded in `docs/PRE_SUBMISSION.md`; unpacked app smoke-launched, but no installer run and no live packaged session |
 | **Native SDK camera smoke** | **Passed** | SDK 3.4.0 reached Running and emitted validation events and metrics with all four requested metrics |
-| **LumaPause live SmartSpectra session** | **Not yet passed** | Renderer frame path was corrected after SDK error 8; requires an in-app retest |
+| **LumaPause live SmartSpectra startup** | **Passed (45 s development test)** | Real renderer camera frames reached SmartSpectra without SDK error 8; normal framing guidance remained active |
 | **Live camera release check** | **Not run** | Covered by code paths and E2E permission tests only |
 
 The Playwright permission-denied test uses a sentinel key and a test-only environment flag

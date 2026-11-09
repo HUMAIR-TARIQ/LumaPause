@@ -10,6 +10,7 @@ export class FrameClock {
   private readonly anchorEpochUs: number;
   private readonly anchorMs: number;
   private readonly nowMs: () => number;
+  private mediaEpochOffsetUs: number | null = null;
   private lastUs = 0;
 
   constructor(epochMs: number = Date.now(), nowMs: () => number = () => performance.now()) {
@@ -18,9 +19,16 @@ export class FrameClock {
     this.anchorEpochUs = Math.round(epochMs * 1000);
   }
 
-  next(): number {
-    const elapsedUs = Math.max(0, (this.nowMs() - this.anchorMs) * 1000);
-    const estimate = this.anchorEpochUs + Math.round(elapsedUs);
+  next(mediaTimestampUs?: number): number {
+    let estimate: number;
+    if (Number.isFinite(mediaTimestampUs)) {
+      const raw = Math.round(mediaTimestampUs as number);
+      this.mediaEpochOffsetUs ??= this.anchorEpochUs - raw;
+      estimate = this.mediaEpochOffsetUs + raw;
+    } else {
+      const elapsedUs = Math.max(0, (this.nowMs() - this.anchorMs) * 1000);
+      estimate = this.anchorEpochUs + Math.round(elapsedUs);
+    }
     this.lastUs = Math.max(this.lastUs + 1, estimate);
     return this.lastUs;
   }

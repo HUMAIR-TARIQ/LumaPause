@@ -16,14 +16,18 @@ export function SetupScreen({
   const missingKey = Boolean(env && !env.keyPresent);
   const unsupported = Boolean(env && !env.platformSupported);
   const runtimeIssue = env?.nativeRuntimeError ?? null;
+  const isWeb = env?.platform === 'web';
 
   return (
     <div className="screen screen--narrow">
-      <Eyebrow>Local setup</Eyebrow>
-      <h1 className="title">Live measurement needs a little setup</h1>
+      <Eyebrow>{isWeb ? 'Online experience' : 'Local setup'}</Eyebrow>
+      <h1 className="title">
+        {isWeb ? 'The responsive room is ready online' : 'Live measurement needs a little setup'}
+      </h1>
       <p className="lede lede--small">
-        LumaPause reads the SmartSpectra API key only in the Electron main process. The key is never
-        sent to this window, never logged, and never included in build output.
+        {isWeb
+          ? 'Explore every stage with clearly labelled simulated signals. Real SmartSpectra camera measurement remains in the desktop application because it requires a native runtime.'
+          : 'LumaPause reads the SmartSpectra API key only in the Electron main process. The key is never sent to this window, never logged, and never included in build output.'}
       </p>
 
       {envError ? (
@@ -33,7 +37,7 @@ export function SetupScreen({
         </Panel>
       ) : null}
 
-      {missingKey ? (
+      {missingKey && !isWeb ? (
         <Panel className="setup-panel">
           <div className="setup-panel__head">
             <StatusChip tone="learning">No API key detected</StatusChip>
@@ -60,7 +64,7 @@ export function SetupScreen({
         </Panel>
       ) : null}
 
-      {unsupported ? (
+      {unsupported && !isWeb ? (
         <Panel className="setup-panel">
           <StatusChip tone="danger">Unsupported platform</StatusChip>
           <p>
@@ -70,7 +74,7 @@ export function SetupScreen({
         </Panel>
       ) : null}
 
-      {runtimeIssue ? (
+      {runtimeIssue && !isWeb ? (
         <Panel className="setup-panel">
           <StatusChip tone="danger">Native runtime issue</StatusChip>
           <p>{runtimeIssue}</p>
@@ -106,7 +110,7 @@ export function SetupScreen({
 
       <div className="actions-row">
         <Button variant="primary" onClick={onDemo} disabled={!env}>
-          Explore demo mode
+          {isWeb ? 'Enter online experience' : 'Explore demo mode'}
         </Button>
         <Button variant="ghost" onClick={onBack}>
           Back

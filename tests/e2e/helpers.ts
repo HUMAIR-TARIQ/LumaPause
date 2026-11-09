@@ -28,7 +28,9 @@ export async function launchApp(options: LaunchOptions = {}): Promise<LaunchedAp
   env.LUMAPAUSE_TIMING_SCALE = String(options.timingScale ?? 0.1);
 
   if (options.key === null || options.key === undefined) {
-    delete env.SMARTSPECTRA_API_KEY;
+    // An empty value is still "present", so dotenv will not fill it from a
+    // developer's local `.env`. This keeps tests isolated from a real key.
+    env.SMARTSPECTRA_API_KEY = '';
   } else {
     env.SMARTSPECTRA_API_KEY = options.key;
   }

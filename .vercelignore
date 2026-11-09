@@ -1,0 +1,31 @@
+# Large generated assets and non-deployable files
+node_modules/
+out/
+release/
+release-build/
+release-final/
+build/
+docs/
+legacy-tempo/
+website/README.md
+website-qa.png
+coverage/
+playwright-report/
+test-results/
+.refdocs/
+.vscode/
+.idea/
+*.pem
+*.key
+*.log
+*.exe
+*.dll
+*.so
+*.dylib
+*.pak
+*.blockmap
+*.app
+
+# Keep the static companion site and its validation test file
+!website/dist/**
+!website/tests/**

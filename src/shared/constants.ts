@@ -78,11 +78,11 @@ export const BREATHING_PERIOD_MAX_MS = 9_000;
 export const WAVEFORM_WINDOW_MS = 10_000;
 
 /** Capture target. Sent to the renderer and used by the frame worker. */
-// SmartSpectra's Electron capture path is tuned for a 16:9 720p stream. The
-// frame pump may scale smaller cameras down proportionally, but must never
-// stretch a 16:9 camera into 4:3 (that distorts the face/chest geometry).
-export const CAPTURE_WIDTH = 1280;
-export const CAPTURE_HEIGHT = 720;
+// The camera itself is negotiated at 640x480 @ 30 fps, then frames sent across
+// Electron are reduced to 320x240. This cuts RGBA conversion/IPC work by 75%
+// so SmartSpectra receives its required >=25 fps while preserving 4:3 geometry.
+export const CAPTURE_WIDTH = 320;
+export const CAPTURE_HEIGHT = 240;
 export const CAPTURE_FPS = 30;
 export const CAPTURE_MIN_FPS = 15;
 

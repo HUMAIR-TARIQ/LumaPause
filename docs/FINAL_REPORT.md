@@ -96,10 +96,10 @@ All run on the final tree on 2026-11-09:
 | `npm run typecheck` | Pass |
 | `npm run lint` (`--max-warnings 0`) | Pass |
 | `npm run format:check` | Pass |
-| `npm run test` | **112/112** across 11 files |
+| `npm run test` | **113/113** across 11 files |
 | `npm run build` | Pass (main, preload, renderer) |
 | `npx playwright test` | **6/6** Electron journeys |
-| `npm run scan:secrets` | Pass — 114 text files (2492.5 KiB), 13 binaries skipped, history included |
+| `npm run scan:secrets` | Pass — 122 text files (2550.8 KiB), 13 binaries skipped, history included |
 | `npm run verify` | Pass end to end |
 
 The E2E suite covers the complete simulated journey and clearing, missing key/setup, consent gating,
@@ -171,7 +171,7 @@ from a clean folder.
 | Session buffers and reflection data cleared | Implemented and E2E-tested |
 | No medical or diagnostic claims | Documentation and UI language reviewed; human review pending |
 | Simulator unmistakably labeled | Implemented and E2E-tested |
-| Automated tests pass | 112/112 unit/integration, 6/6 E2E |
+| Automated tests pass | 113/113 unit/integration, 6/6 E2E |
 | Type-check, lint, formatting, production build | All pass |
 | Windows packaging succeeds | NSIS and portable artifacts produced |
 | No credential in Git history or build output | Credential scan passes |

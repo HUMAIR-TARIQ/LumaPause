@@ -4,6 +4,8 @@ node_modules/
 # Build output
 out/
 dist/
+!website/dist/
+!website/dist/index.html
 release/
 release-build/
 release-final/
@@ -40,3 +42,6 @@ Thumbs.db
 
 # Legacy project preserved locally outside the active build
 legacy-tempo/
+
+.vercel
+.env*

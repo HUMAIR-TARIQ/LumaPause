@@ -96,7 +96,7 @@ Full data-flow table: [`PRIVACY.md`](../PRIVACY.md).
 - Real signal integration with named, cited confidence/stability gates and honest fallbacks.
 - A hardened Electron boundary: sandbox, context isolation, CSP, typed and validated IPC, a private
   frame port, key isolation, and teardown on every exit path.
-- Automated evidence: 112 unit/integration tests and 6 Playwright Electron journeys, plus a
+- Automated evidence: 113 unit/integration tests and 6 Playwright Electron journeys, plus a
   documented packaging and secret-scanning process.
 - Documentation that separates what is verified from what is not.
 

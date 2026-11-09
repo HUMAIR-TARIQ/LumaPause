@@ -15,6 +15,19 @@ type VideoWithFrameCallback = HTMLVideoElement & {
   cancelVideoFrameCallback?: (handle: number) => void;
 };
 
+interface ProcessorVideoFrame {
+  readonly codedWidth: number;
+  readonly codedHeight: number;
+  readonly timestamp: number;
+  close(): void;
+}
+
+interface TrackProcessor {
+  readonly readable: ReadableStream<ProcessorVideoFrame>;
+}
+
+type TrackProcessorConstructor = new (options: { track: MediaStreamTrack }) => TrackProcessor;
+
 export interface FramePumpOptions {
   width?: number;
   height?: number;
@@ -52,6 +65,8 @@ export class FramePump {
   private pendingSince = 0;
   private useWorker = false;
   private clock = new FrameClock();
+  private processorReader: ReadableStreamDefaultReader<ProcessorVideoFrame> | null = null;
+  private processorTrack: MediaStreamTrack | null = null;
 
   constructor(options: FramePumpOptions) {
     this.targetWidth = options.width ?? CAPTURE_WIDTH;
@@ -82,6 +97,7 @@ export class FramePump {
     this.clock = new FrameClock();
     this.running = true;
     this.inFlight = false;
+    if (this.startTrackProcessor(video)) return;
     this.initWorker();
     this.schedule();
   }
@@ -94,6 +110,12 @@ export class FramePump {
       video.cancelVideoFrameCallback(this.callbackHandle);
     }
     this.callbackHandle = null;
+    if (this.processorReader) {
+      void this.processorReader.cancel().catch(() => undefined);
+      this.processorReader = null;
+    }
+    this.processorTrack?.stop();
+    this.processorTrack = null;
     if (this.timer !== null) {
       window.clearInterval(this.timer);
       this.timer = null;
@@ -110,6 +132,79 @@ export class FramePump {
 
   get active(): boolean {
     return this.running;
+  }
+
+  /**
+   * SmartSpectra's supported Electron renderer path consumes VideoFrames from
+   * MediaStreamTrackProcessor. It avoids createImageBitmap/worker backpressure,
+   * which can drop enough frames to trigger validation code 11 and SDK error 8.
+   */
+  private startTrackProcessor(video: HTMLVideoElement): boolean {
+    const Processor = (
+      globalThis as typeof globalThis & { MediaStreamTrackProcessor?: TrackProcessorConstructor }
+    ).MediaStreamTrackProcessor;
+    const stream = video.srcObject;
+    if (!Processor || !(stream instanceof MediaStream)) return false;
+    const sourceTrack = stream.getVideoTracks()[0];
+    if (!sourceTrack || typeof OffscreenCanvas === 'undefined') return false;
+
+    try {
+      this.processorTrack = sourceTrack.clone();
+      const processor = new Processor({ track: this.processorTrack });
+      const reader = processor.readable.getReader();
+      this.processorReader = reader;
+      void this.runTrackProcessor(reader);
+      return true;
+    } catch {
+      this.processorTrack?.stop();
+      this.processorTrack = null;
+      this.processorReader = null;
+      return false;
+    }
+  }
+
+  private async runTrackProcessor(
+    reader: ReadableStreamDefaultReader<ProcessorVideoFrame>,
+  ): Promise<void> {
+    let canvas: OffscreenCanvas | null = null;
+    let context: OffscreenCanvasRenderingContext2D | null = null;
+    try {
+      while (this.running && this.processorReader === reader) {
+        const read = await reader.read();
+        if (read.done || !read.value) break;
+        const frame = read.value;
+        try {
+          const sourceWidth = frame.codedWidth;
+          const sourceHeight = frame.codedHeight;
+          const scale = Math.min(
+            1,
+            this.targetWidth / sourceWidth,
+            this.targetHeight / sourceHeight,
+          );
+          const width = Math.max(16, Math.round((sourceWidth * scale) / 2) * 2);
+          const height = Math.max(16, Math.round((sourceHeight * scale) / 2) * 2);
+          if (!canvas || canvas.width !== width || canvas.height !== height) {
+            canvas = new OffscreenCanvas(width, height);
+            context = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+          }
+          if (!context) throw new Error('Offscreen camera canvas is unavailable.');
+          context.drawImage(frame as unknown as CanvasImageSource, 0, 0, width, height);
+          const image = context.getImageData(0, 0, width, height);
+          const timestampUs = this.clock.next(frame.timestamp);
+          this.onFrame(
+            { width, height, stride: width * 4, format: 'rgba', timestampUs },
+            image.data.buffer as ArrayBuffer,
+          );
+        } finally {
+          frame.close();
+        }
+      }
+    } catch (error) {
+      if (this.running) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.onError?.(message);
+      }
+    }
   }
 
   private initWorker(): void {
@@ -149,10 +244,13 @@ export class FramePump {
     if (!this.running || !video) return;
 
     if (video.requestVideoFrameCallback) {
-      const onFrame = (): void => {
+      const onFrame = (_now: number, metadata: VideoFrameCallbackMetadata): void => {
         if (!this.running) return;
         this.schedule();
-        void this.grab();
+        // mediaTime is the actual capture/presentation clock in seconds. Using
+        // it prevents canvas/worker jitter from looking like a low-FPS camera
+        // to SmartSpectra.
+        void this.grab(metadata.mediaTime * 1_000_000);
       };
       this.callbackHandle = video.requestVideoFrameCallback(onFrame);
       return;
@@ -166,7 +264,7 @@ export class FramePump {
     );
   }
 
-  private async grab(): Promise<void> {
+  private async grab(mediaTimestampUs?: number): Promise<void> {
     if (!this.running || !this.video) return;
 
     const now = performance.now();
@@ -178,7 +276,7 @@ export class FramePump {
 
     this.inFlight = true;
     this.pendingSince = now;
-    const timestampUs = this.clock.next();
+    const timestampUs = this.clock.next(mediaTimestampUs);
     const video = this.video;
 
     if (this.useWorker && this.worker) {

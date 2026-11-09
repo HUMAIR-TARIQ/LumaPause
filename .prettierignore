@@ -3,6 +3,7 @@ release/
 release-build/
 build/
 docs/
+website/dist/
 legacy-tempo/
 vibe_images/
 .agents/

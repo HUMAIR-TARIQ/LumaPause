@@ -149,18 +149,52 @@ export function useCamera(videoRef: RefObject<HTMLVideoElement | null>): CameraC
       setStatus('requesting');
       setFailure(null);
 
-      const videoConstraints: MediaTrackConstraints = {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        frameRate: { ideal: 30, max: 30 },
-        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-      };
-
       try {
-        const media = await navigator.mediaDevices.getUserMedia({
-          video: videoConstraints,
-          audio: false,
-        });
+        // SmartSpectra rejects sustained capture below 25 fps. Chromium's
+        // former 720p `ideal` request selected a low-frame-rate webcam mode on
+        // this Windows hardware, even though its 640x480 mode supports 30 fps.
+        const deviceConstraint = deviceId ? { deviceId: { exact: deviceId } } : {};
+        const candidates: MediaTrackConstraints[] = [
+          {
+            width: { exact: 640 },
+            height: { exact: 480 },
+            frameRate: { min: 25, ideal: 30, max: 30 },
+            ...deviceConstraint,
+          },
+          {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { min: 25, ideal: 30, max: 30 },
+            ...deviceConstraint,
+          },
+          {
+            frameRate: { min: 25, ideal: 30, max: 30 },
+            ...deviceConstraint,
+          },
+        ];
+
+        let media: MediaStream | null = null;
+        let lastConstraintError: unknown = null;
+        for (const video of candidates) {
+          try {
+            const candidate = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+            const reportedFps = candidate.getVideoTracks()[0]?.getSettings().frameRate;
+            if (typeof reportedFps === 'number' && reportedFps < 25) {
+              candidate.getTracks().forEach((track) => track.stop());
+              lastConstraintError = new DOMException(
+                `Camera selected ${reportedFps} fps; SmartSpectra requires at least 25 fps.`,
+                'OverconstrainedError',
+              );
+              continue;
+            }
+            media = candidate;
+            break;
+          } catch (error) {
+            lastConstraintError = error;
+          }
+        }
+        if (!media) throw lastConstraintError ?? new Error('No 25 fps camera mode is available.');
+
         await bind(media);
 
         const track = media.getVideoTracks()[0] ?? null;

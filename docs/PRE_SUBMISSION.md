@@ -8,12 +8,12 @@ box from memory; attach the command output or artifact path.
 - [x] `npm run typecheck` — strict TypeScript passes.
 - [x] `npm run lint` — ESLint passes with `--max-warnings 0`.
 - [x] `npm run format:check` — Prettier reports all checked files conform.
-- [x] `npm test` — 112 unit/integration tests pass.
+- [x] `npm test` — 113 unit/integration tests pass.
 - [x] `npm run build` — main, preload, and renderer bundles build.
 - [x] `npm run test:e2e` — 6 Playwright Electron journeys pass on the current build.
 - [x] `npm run scan:secrets` — project files, `out/`/`release-final/`, and Git history are clean.
 - [x] `npm run verify` — full sequence rerun on the final tree (2026-11-09): typecheck, lint,
-  formatting, 112/112 tests, production build, and credential scan all passed.
+  formatting, 113/113 tests, production build, and credential scan all passed.
 
 ## 2. Credential and repository hygiene
 

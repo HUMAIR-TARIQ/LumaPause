@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "npm run build && playwright test",
+    "site:test": "node --test website/tests/site.test.mjs",
     "smoke:smartspectra": "node scripts/smartspectra-smoke.mjs",
     "package:win": "npm run build && electron-builder --win nsis portable",
     "scan:secrets": "node scripts/scan-secrets.mjs",
