@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo \"Static companion site: no dependency install required\"",
+  "buildCommand": "npm run site:test",
+  "outputDirectory": "website/dist",
+  "cleanUrls": true
+}
