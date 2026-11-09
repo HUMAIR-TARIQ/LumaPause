@@ -1,12 +1,105 @@
 {
-  "name": "tempo-execution-cockpit",
+  "name": "lumapause",
   "version": "1.0.0",
   "private": true,
+  "description": "A private, camera-powered pre-performance reset room whose light responds live to breathing, pulse, and expression.",
+  "main": "out/main/main.js",
+  "author": "LumaPause",
+  "license": "MIT",
   "type": "module",
-  "scripts": {
-    "test": "node --test tests/*.test.mjs",
-    "build": "node scripts/build.mjs",
-    "validate": "node scripts/validate-artifact.mjs"
+  "engines": {
+    "node": ">=20"
   },
-  "engines": { "node": ">=20" }
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run typecheck && node scripts/build.mjs",
+    "start": "electron .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "smoke:smartspectra": "node scripts/smartspectra-smoke.mjs",
+    "package:win": "npm run build && electron-builder --win nsis portable",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build && npm run scan:secrets"
+  },
+  "dependencies": {
+    "@smartspectra/node-sdk": "3.4.0",
+    "dotenv": "16.4.7",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/node": "22.10.5",
+    "@types/react": "19.0.3",
+    "@types/react-dom": "19.0.2",
+    "@vitejs/plugin-react": "4.3.4",
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8",
+    "esbuild": "0.24.2",
+    "eslint": "9.17.0",
+    "prettier": "3.4.2",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.19.0",
+    "vite": "6.0.11",
+    "vitest": "2.1.9"
+  },
+  "build": {
+    "appId": "studio.lumapause.app",
+    "productName": "LumaPause",
+    "artifactName": "LumaPause-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json",
+      "LICENSE",
+      "PRIVACY.md"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/koffi/**",
+      "node_modules/@smartspectra/node-sdk/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "node_modules/@smartspectra/node-sdk-win32-${arch}/",
+          "to": "smartspectra/"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "LumaPause",
+      "artifactName": "LumaPause-${version}-${arch}-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "LumaPause-${version}-${arch}-portable.${ext}"
+    }
+  }
 }

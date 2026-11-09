@@ -1,2 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
 dist/
-site.tar.gz
+release/
+release-build/
+release-final/
+coverage/
+playwright-report/
+test-results/
+.refdocs/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Local recordings and captures
+recordings/
+*.webm
+*.mp4
+*.mov
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+
+# Legacy project preserved locally outside the active build
+legacy-tempo/

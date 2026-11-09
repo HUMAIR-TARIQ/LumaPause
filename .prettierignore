@@ -1,0 +1,9 @@
+out/
+release/
+release-build/
+build/
+docs/
+legacy-tempo/
+vibe_images/
+.agents/
+package-lock.json
